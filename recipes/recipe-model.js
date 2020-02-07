@@ -12,37 +12,25 @@ function getRecipeById(id) {
 }
 
 //return a list of all ingredients and quantities for a given recipe
-function getShoppingList(id) {
-  return db("recipes")
-    .where({ id })
-    .first();
+function getShoppingList(recipe_id) {
+  return db("ingredients as i")
+    .join("recipe_ingredients as ri", "i.id", "ri.ingredient_id")
+    .join("recipes as r", "ri.recipe_id", "r.id")
+    .where({ recipe_id })
+    .select("ri.quantity", "i.name");
 }
 
 //return a list of step by step instructions for preparing a recipe
-function getInstructions(id) {
-  return db("recipes")
-    .join("steps", "recipes.id", "steps.scheme_id")
-    .where({ scheme_id: id })
-    .orderBy("step_number")
+function getInstructions(recipe_id) {
+  return db("steps")
+    .join("recipes", "recipes.id", "steps.recipe_id")
+    .where({ recipe_id })
+    .orderBy("steps.step_number")
     .select(
-      "steps.id as steps id",
-      "recipes.scheme_name",
+      "recipes.name as recipe_name",
       "steps.step_number",
       "steps.instructions"
     );
-}
-
-async function getInstructions(newRecipe) {
-  return db("recipes")
-    .insert(newRecipe)
-    .then(([id]) => {
-      // return newId;
-      // return db("recipes")
-      //   .where({ id })
-      //   .first();
-      return findById(id);
-    })
-    .catch(err => console.log(err.message));
 }
 
 module.exports = {
